@@ -1,0 +1,86 @@
+species dna_ugate init 24
+species dna_input init 24
+species rna_ugate init 0
+species rna_input_rna init 0
+species rna_gate init 0
+species rna_input_gate init 0
+species rna_output_rna init 0
+species protein_ribozyme init 1
+species protein_CFP_degtagged init 0
+
+
+
+# r0: dna_ugate -> dna_ugate + rna_ugate
+reaction r0
+  consume dna_ugate 1
+  produce dna_ugate 1
+  produce rna_ugate 1
+  const 0.013
+
+# r1: dna_input -> dna_input + rna_input_rna
+reaction r1
+  consume dna_input 1
+  produce dna_input 1
+  produce rna_input_rna 1
+  const 0.013
+
+# r2: protein_ribozyme + rna_ugate -> protein_ribozyme + rna_gate
+reaction r2
+  consume protein_ribozyme 1
+  consume rna_ugate 1
+  produce protein_ribozyme 1
+  produce rna_gate 1
+  const 0.00416666666666667
+
+# r3: protein_CFP_degtagged ->
+reaction r3
+  consume protein_CFP_degtagged 1
+  const 0.00075
+
+# r4: rna_input_gate ->
+reaction r4
+  consume rna_input_gate 1
+  const 0.000375
+
+# r5: rna_output_rna ->
+reaction r5
+  consume rna_output_rna 1
+  const 0.00075
+
+# r6: rna_input_rna ->
+reaction r6
+  consume rna_input_rna 1
+  const 0.00075
+
+# r7: rna_gate ->
+reaction r7
+  consume rna_gate 1
+  const 0.000375
+
+# r8: rna_ugate ->
+reaction r8
+  consume rna_ugate 1
+  const 0.000375
+
+# r9: rna_input_rna + rna_gate -> rna_input_gate + rna_output_rna
+reaction r9
+  consume rna_input_rna 1
+  consume rna_gate 1
+  produce rna_input_gate 1
+  produce rna_output_rna 1
+  const 0.000001
+
+# r9rev: rna_input_gate + rna_output_rna -> rna_input_rna + rna_gate
+reaction r9rev
+  consume rna_input_gate 1
+  consume rna_output_rna 1
+  produce rna_input_rna 1
+  produce rna_gate 1
+  const 0.00000027
+
+# r10: rna_input_gate -> rna_input_gate + protein_CFP_degtagged
+reaction r10
+  consume rna_input_gate 1
+  produce rna_input_gate 1
+  produce protein_CFP_degtagged 1
+  const 0.001

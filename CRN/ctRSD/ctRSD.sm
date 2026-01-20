@@ -1,0 +1,257 @@
+ctmc
+
+// Compartment size
+const double default = 1.0E-6;
+
+// Model parameters
+const double ktx__ = 0.013;                    // transcription rate
+const double kcat__ = 0.00416666666666667;    // ribozyme catalytic rate
+const double kdil__ = 0.00075;                // protein dilution
+const double kdil_rna_input_gate_ = 0.000375;
+const double kdil_rna_gate_       = 0.000375;
+const double kdil_rna_ugate_      = 0.000375;
+const double k_forward = 1e-06;
+const double ktl      = 0.001;               // translation rate (change for different d)
+const double k_reverse = 2.7e-07;
+
+
+//==============================
+//   Species modules
+//==============================
+
+// protein_CFP_degtagged
+module protein_CFP_degtagged
+
+    protein_CFP_degtagged : int init 0;
+
+    // r3: CFP ->
+    [r3]  protein_CFP_degtagged > 0
+        -> (protein_CFP_degtagged' = protein_CFP_degtagged - 1);
+
+    // r10: rna_input_gate -> rna_input_gate + CFP
+    // no upper bound any more
+    [r10] true
+        -> (protein_CFP_degtagged' = protein_CFP_degtagged + 1);
+
+endmodule
+
+
+// rna_input_gate
+module rna_input_gate
+
+    rna_input_gate : int init 0;
+
+    // r4: rna_input_gate ->
+    [r4]    rna_input_gate > 0
+          -> (rna_input_gate' = rna_input_gate - 1);
+
+    // r9: rna_input_rna + rna_gate -> rna_input_gate + rna_output_rna
+    [r9]    true
+          -> (rna_input_gate' = rna_input_gate + 1);
+
+    // r9rev: rna_input_gate + rna_output_rna -> rna_input_rna + rna_gate
+    [r9rev] rna_input_gate > 0
+          -> (rna_input_gate' = rna_input_gate - 1);
+
+    // r10: rna_input_gate -> rna_input_gate + CFP
+    // gate is catalytic so unchanged
+    [r10]   rna_input_gate > 0
+          -> (rna_input_gate' = rna_input_gate);
+
+endmodule
+
+
+// rna_output_rna
+module rna_output_rna
+
+    rna_output_rna : int init 0;
+
+    // r5: rna_output_rna ->
+    [r5]    rna_output_rna > 0
+          -> (rna_output_rna' = rna_output_rna - 1);
+
+    // r9: rna_input_rna + rna_gate -> rna_input_gate + rna_output_rna
+    [r9]    true
+          -> (rna_output_rna' = rna_output_rna + 1);
+
+    // r9rev: rna_input_gate + rna_output_rna -> rna_input_rna + rna_gate
+    [r9rev] rna_output_rna > 0
+          -> (rna_output_rna' = rna_output_rna - 1);
+
+endmodule
+
+
+// dna_ugate
+module dna_ugate
+
+    dna_ugate : int init 24;   // you set 24
+
+    // r0: dna_ugate -> dna_ugate + rna_ugate
+    [r0] true
+       -> (dna_ugate' = dna_ugate);
+
+endmodule
+
+
+// rna_ugate
+module rna_ugate
+
+    rna_ugate : int init 0;
+
+    // r0: dna_ugate -> dna_ugate + rna_ugate
+    [r0]    true
+          -> (rna_ugate' = rna_ugate + 1);
+
+    // r2: protein_ribozyme + rna_ugate -> protein_ribozyme + rna_gate
+    [r2]    rna_ugate > 0
+          -> (rna_ugate' = rna_ugate - 1);
+
+    // r8: rna_ugate ->
+    [r8]    rna_ugate > 0
+          -> (rna_ugate' = rna_ugate - 1);
+
+endmodule
+
+
+// dna_input
+module dna_input
+
+    dna_input : int init 24;
+
+    // r1: dna_input -> dna_input + rna_input_rna
+    [r1] true
+       -> (dna_input' = dna_input);
+
+endmodule
+
+
+// rna_input_rna
+module rna_input_rna
+
+    rna_input_rna : int init 0;
+
+    // r1: dna_input -> dna_input + rna_input_rna
+    [r1]    true
+          -> (rna_input_rna' = rna_input_rna + 1);
+
+    // r6: rna_input_rna ->
+    [r6]    rna_input_rna > 0
+          -> (rna_input_rna' = rna_input_rna - 1);
+
+    // r9: rna_input_rna + rna_gate -> rna_input_gate + rna_output_rna
+    [r9]    rna_input_rna > 0
+          -> (rna_input_rna' = rna_input_rna - 1);
+
+    // r9rev: rna_input_gate + rna_output_rna -> rna_input_rna + rna_gate
+    [r9rev] true
+          -> (rna_input_rna' = rna_input_rna + 1);
+
+endmodule
+
+
+// protein_ribozyme
+module protein_ribozyme
+
+    protein_ribozyme : int init 1;
+
+    // r2: protein_ribozyme + rna_ugate -> protein_ribozyme + rna_gate
+    [r2] true
+       -> (protein_ribozyme' = protein_ribozyme);
+
+endmodule
+
+
+// rna_gate
+module rna_gate
+
+    rna_gate : int init 0;
+
+    // r2: protein_ribozyme + rna_ugate -> protein_ribozyme + rna_gate
+    [r2]    true
+          -> (rna_gate' = rna_gate + 1);
+
+    // r7: rna_gate ->
+    [r7]    rna_gate > 0
+          -> (rna_gate' = rna_gate - 1);
+
+    // r9: rna_input_rna + rna_gate -> rna_input_gate + rna_output_rna
+    [r9]    rna_gate > 0
+          -> (rna_gate' = rna_gate - 1);
+
+    // r9rev: rna_input_gate + rna_output_rna -> rna_input_rna + rna_gate
+    [r9rev] true
+          -> (rna_gate' = rna_gate + 1);
+
+endmodule
+
+
+//==============================
+//      Reaction rates
+//==============================
+
+module reaction_rates
+
+    // r0: dna_ugate -> dna_ugate + rna_ugate
+    [r0] (ktx__ * dna_ugate) > 0
+       -> (ktx__ * dna_ugate) : true;
+
+    // r1: dna_input -> dna_input + rna_input_rna
+    [r1] (ktx__ * dna_input) > 0
+       -> (ktx__ * dna_input) : true;
+
+    // r2: protein_ribozyme + rna_ugate -> protein_ribozyme + rna_gate
+    [r2] (kcat__ * protein_ribozyme * rna_ugate) > 0
+       -> (kcat__ * protein_ribozyme * rna_ugate) : true;
+
+    // r3: CFP ->
+    [r3] (kdil__ * protein_CFP_degtagged) > 0
+       -> (kdil__ * protein_CFP_degtagged) : true;
+
+    // r4: rna_input_gate ->
+    [r4] (kdil_rna_input_gate_ * rna_input_gate) > 0
+       -> (kdil_rna_input_gate_ * rna_input_gate) : true;
+
+    // r5: rna_output_rna ->
+    [r5] (kdil__ * rna_output_rna) > 0
+       -> (kdil__ * rna_output_rna) : true;
+
+    // r6: rna_input_rna ->
+    [r6] (kdil__ * rna_input_rna) > 0
+       -> (kdil__ * rna_input_rna) : true;
+
+    // r7: rna_gate ->
+    [r7] (kdil_rna_gate_ * rna_gate) > 0
+       -> (kdil_rna_gate_ * rna_gate) : true;
+
+    // r8: rna_ugate ->
+    [r8] (kdil_rna_ugate_ * rna_ugate) > 0
+       -> (kdil_rna_ugate_ * rna_ugate) : true;
+
+    // r9: rna_input_rna + rna_gate -> rna_input_gate + rna_output_rna
+    [r9] (k_forward * rna_input_rna * rna_gate) > 0
+       -> (k_forward * rna_input_rna * rna_gate) : true;
+
+    // r9rev: rna_input_gate + rna_output_rna -> rna_input_rna + rna_gate
+    [r9rev] (k_reverse * rna_input_gate * rna_output_rna) > 0
+          -> (k_reverse * rna_input_gate * rna_output_rna) : true;
+
+    // r10: rna_input_gate -> rna_input_gate + CFP
+    [r10] (ktl * rna_input_gate) > 0
+         -> (ktl * rna_input_gate) : true;
+
+endmodule
+
+
+//==============================
+//      Reward structures
+//==============================
+
+rewards "protein_CFP_degtagged" true : protein_CFP_degtagged; endrewards
+rewards "rna_input_gate"       true : rna_input_gate;       endrewards
+rewards "rna_output_rna"       true : rna_output_rna;       endrewards
+rewards "dna_ugate"            true : dna_ugate;            endrewards
+rewards "rna_ugate"            true : rna_ugate;            endrewards
+rewards "dna_input"            true : dna_input;            endrewards
+rewards "rna_input_rna"        true : rna_input_rna;        endrewards
+rewards "protein_ribozyme"     true : protein_ribozyme;     endrewards
+rewards "rna_gate"             true : rna_gate;             endrewards
