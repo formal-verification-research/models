@@ -18,7 +18,7 @@ module S0
   S0  :  [0..UpperBound] init 1;
 
 		// R0
-		[R0] S0 >= 0 & S0 < UpperBound -> (S0' = S0 + 0);
+		[R0] S0 > 0 & S0 < UpperBound -> (S0' = S0 + 0);
 
 endmodule
 
@@ -28,9 +28,9 @@ module S1
   S1  :  [0..UpperBound] init 40;
 
 		// R0
-		[R0] S0 >= 0 & S1 < UpperBound -> (S1' = S1 + 1);
+		[R0] S0 > 0 & S1 < UpperBound -> (S1' = S1 + 1);
 		// R1
-		[R1] S1 >= 0 -> (S1' = S1 - 1);
+		[R1] S1 > 0 -> (S1' = S1 - 1);
 
 endmodule
 
