@@ -48,7 +48,7 @@ module S1
 		// R1
 		[R1] S2 > 0 & S1 < UpperBound -> (S1' = S1 + 1);
 		// R5
-		[R5] S5 > 0 -> (S1' = S1 + 1);
+		[R5] S5 > 0 & S1 < UpperBound -> (S1' = S1 + 1);
 
 endmodule
 
